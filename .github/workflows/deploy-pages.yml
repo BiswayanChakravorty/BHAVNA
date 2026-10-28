@@ -1,4 +1,4 @@
-name: Deploy MiroFish frontend to GitHub Pages
+name: Deploy BHAVNA frontend to GitHub Pages
 
 on:
   push:

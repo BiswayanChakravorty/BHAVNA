@@ -3,7 +3,7 @@
     <!-- Header -->
     <header class="app-header">
       <div class="header-left">
-        <div class="brand" @click="router.push('/')">MIROFISH</div>
+        <div class="brand" @click="router.push('/')">BHAVNA</div>
       </div>
       
       <div class="header-center">
@@ -34,6 +34,21 @@
         </span>
       </div>
     </header>
+
+    <section v-if="auditData" class="bhavna-audit-strip">
+      <div class="audit-verdict">
+        <span class="audit-kicker">BHAVNA DECISION AUDIT</span>
+        <strong>{{ auditData.verdict }}</strong>
+        <span class="audit-overall">{{ auditData.overall_score ?? '—' }}/10 overall</span>
+      </div>
+      <div class="audit-scores">
+        <div v-for="(item, key) in auditData.scores" :key="key" class="audit-score">
+          <span>{{ auditLabels[key] || key }}</span>
+          <strong>{{ item.score }}/10</strong>
+        </div>
+      </div>
+      <div class="audit-method">{{ auditData.panel?.target_agents?.toLocaleString() }}-agent panel · devil's-advocate pass</div>
+    </section>
 
     <!-- Main Content Area -->
     <main class="content-area">
@@ -94,6 +109,14 @@ const graphData = ref(null)
 const graphLoading = ref(false)
 const systemLogs = ref([])
 const currentStatus = ref('processing') // processing | completed | error
+const auditData = ref(null)
+const auditLabels = {
+  scalability: 'Scalability',
+  public_acceptability: 'Public acceptance',
+  problem_solution_fit: 'Problem fit',
+  defensibility: 'Defensibility',
+  economics: 'Economics'
+}
 
 // --- Computed Layout Styles ---
 const leftPanelStyle = computed(() => {
@@ -150,6 +173,7 @@ const loadReportData = async () => {
     const reportRes = await getReport(currentReportId.value)
     if (reportRes.success && reportRes.data) {
       const reportData = reportRes.data
+      auditData.value = reportData.audit || null
       simulationId.value = reportData.simulation_id
 
       if (simulationId.value) {
@@ -225,6 +249,74 @@ onMounted(() => {
   background: #FFF;
   overflow: hidden;
   font-family: 'Space Grotesk', 'Noto Sans SC', system-ui, sans-serif;
+}
+
+.bhavna-audit-strip {
+  min-height: 86px;
+  display: flex;
+  align-items: stretch;
+  gap: 22px;
+  padding: 14px 24px;
+  border-bottom: 1px solid #E5E5E5;
+  background: #0A0A0A;
+  color: #FFF;
+  z-index: 90;
+}
+
+.audit-verdict {
+  min-width: 170px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-right: 1px solid #333;
+  padding-right: 22px;
+}
+
+.audit-kicker,
+.audit-method,
+.audit-score span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #AAA;
+}
+
+.audit-verdict strong {
+  margin: 4px 0;
+  color: #FF5A1F;
+  font-size: 22px;
+  letter-spacing: .04em;
+}
+
+.audit-overall {
+  color: #EEE;
+  font-size: 12px;
+}
+
+.audit-scores {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(90px, 1fr));
+  gap: 10px;
+  align-items: center;
+}
+
+.audit-score {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.audit-score strong {
+  font-size: 20px;
+}
+
+.audit-method {
+  align-self: center;
+  max-width: 150px;
+  line-height: 1.5;
+  text-align: right;
 }
 
 /* Header */

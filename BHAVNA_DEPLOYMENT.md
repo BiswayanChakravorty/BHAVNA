@@ -1,11 +1,13 @@
 # BHAVNA deployment
 
-BHAVNA is the business and e-commerce testing entry point for MiroFish. The upstream MiroFish application remains intact: users upload seed material such as a product brief, customer research, competitor notes, policy draft, or market report, then describe the scenario they want simulated.
+BHAVNA is an independent business and e-commerce decision-audit product. Users upload seed material such as a product brief, customer research, competitor notes, policy draft, or market report, then describe the scenario they want simulated.
+
+BHAVNA's product layer adds a structured adversarial audit after simulation. It uses a declared 5,000-agent panel design across customer, non-buyer, competitor, operator, channel, regulator, investor, and devil's-advocate roles. The panel is synthesized in batches; it is not a promise of 5,000 separate paid LLM requests per audit. Each report scores scalability, public acceptance, problem–solution fit, defensibility, and economics from 0–10, then recommends LAUNCH, PILOT, REWORK, or KILL.
 
 ## Architecture
 
 - **Frontend:** Vue/Vite, deployed to GitHub Pages by `.github/workflows/deploy-pages.yml`.
-- **Backend:** the existing Python MiroFish API, deployed as a Docker web service using `render.yaml` or `docker compose`.
+- **Backend:** the Python simulation API plus BHAVNA audit service, deployed using `render.yaml` or `docker compose`.
 - **LLM:** any OpenAI-compatible provider. The default example uses Alibaba Qwen-plus.
 - **Memory:** Zep Cloud, configured with `ZEP_API_KEY`.
 
@@ -19,7 +21,7 @@ GitHub Pages is static hosting. It cannot execute the Python backend, run OASIS 
 4. Wait for the service to become healthy and copy its HTTPS URL.
 5. In the GitHub repository, open **Settings → Pages** and select **GitHub Actions** as the source.
 6. In **Settings → Secrets and variables → Actions → Variables**, create `VITE_API_BASE_URL` with the backend URL, for example `https://bhavna-mirofish.onrender.com`.
-7. Push to `main` or run **Deploy MiroFish frontend to GitHub Pages** manually.
+7. Push to `main` or run **Deploy BHAVNA frontend to GitHub Pages** manually.
 
 The public Pages URL is normally `https://<github-owner>.github.io/<repository-name>/`.
 

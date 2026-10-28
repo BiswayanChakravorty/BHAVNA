@@ -29,6 +29,7 @@ from .zep_tools import (
     PanoramaResult,
     InterviewResult
 )
+from .bhavna_audit import BhavnaAuditService
 
 logger = get_logger('mirofish.report_agent')
 
@@ -451,6 +452,7 @@ class Report:
     created_at: str = ""
     completed_at: str = ""
     error: Optional[str] = None
+    audit: Optional[Dict[str, Any]] = None
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -463,7 +465,8 @@ class Report:
             "markdown_content": self.markdown_content,
             "created_at": self.created_at,
             "completed_at": self.completed_at,
-            "error": self.error
+            "error": self.error,
+            "audit": self.audit
         }
 
 
@@ -1749,6 +1752,30 @@ class ReportAgent:
             
             # 使用ReportManager组装完整报告
             report.markdown_content = ReportManager.assemble_full_report(report_id, outline)
+            # BHAVNA audit layer: a separate, evidence-bound devil's-advocate pass.
+            # Audit failure must not destroy an otherwise valid simulation report.
+            try:
+                if progress_callback:
+                    progress_callback("auditing", 97, "BHAVNA adversarial audit is testing the launch case")
+                audit = BhavnaAuditService().score_report(
+                    requirement=self.simulation_requirement,
+                    report_markdown=report.markdown_content,
+                )
+                report.audit = audit
+                report.markdown_content += "\n\n" + BhavnaAuditService.to_markdown(audit)
+            except Exception as audit_error:
+                logger.exception("BHAVNA audit failed; preserving the simulation report: %s", audit_error)
+                report.audit = {
+                    "panel": {"target_agents": BhavnaAuditService.panel_size, "role_groups": 10, "method": "audit unavailable"},
+                    "scores": {},
+                    "overall_score": None,
+                    "verdict": "REWORK",
+                    "verdict_reason": "The adversarial audit could not be completed. Treat this report as unverified.",
+                    "strongest_case_against": str(audit_error),
+                    "top_assumptions_to_break": [],
+                    "next_72_hour_tests": [],
+                    "evidence_gaps": ["Audit service unavailable"],
+                }
             report.status = ReportStatus.COMPLETED
             report.completed_at = datetime.now().isoformat()
             
@@ -2540,7 +2567,8 @@ class ReportManager:
             markdown_content=markdown_content,
             created_at=data.get('created_at', ''),
             completed_at=data.get('completed_at', ''),
-            error=data.get('error')
+            error=data.get('error'),
+            audit=data.get('audit')
         )
     
     @classmethod
